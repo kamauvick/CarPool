@@ -4,3 +4,4 @@ __pycache__/
 .idea
 .vscode
 settings/__init__.py
+api/migrations/
