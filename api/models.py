@@ -3,8 +3,9 @@ from django.db import models
 
 # Create your models here.
 class Users(models.Model):
-    name = models.CharField(max_length=20)
-    email = models.CharField(max_length=20)
+    f_name = models.CharField(max_length=20)
+    l_name = models.CharField(max_length=20)
+    email = models.EmailField(max_length=50)
     auth_token = models.CharField(max_length=256)
     restart_token = models.CharField(max_length=256)
 
@@ -13,3 +14,20 @@ class Users(models.Model):
 
     class Meta:
         db_table = 'users'
+        ordering = ['-f_name']
+
+
+class Location(models.Model):
+    pass
+
+
+class Trip(models.Model):
+    pass
+
+
+class Trip_passenger(models.Model):
+    pass
+
+
+class Trip_Requests(models.Model):
+    pass
