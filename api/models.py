@@ -57,7 +57,6 @@ class Trip_Request(models.Model):
     class Meta:
         verbose_name = 'triprequest'
         db_table = 'trip_request'
-        # ordering = ['-destination']
 
 
 class Trip_Offers(models.Model):
