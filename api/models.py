@@ -33,8 +33,10 @@ class Trip(models.Model):
     departure_time = models.TimeField()
     available_seats = models.IntegerField()
     driver = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    start_time = models.TimeField()
+    arrival_time = models.TimeField(null=True, blank=True)
     is_complete = models.BooleanField(default=False)
+    date = models.DateField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.origin}'
@@ -45,17 +47,17 @@ class Trip(models.Model):
 
 
 class Trip_Request(models.Model):
-    destination = models.CharField(max_length=200)
-    origin = models.CharField(max_length=200)
-    departure_time = models.TimeField()
+    trip = models.ForeignKey('api.Trip', related_name='trip_requests', on_delete=models.PROTECT)
+    passenger = models.ForeignKey('api.Profile', related_name='trip_passengers', on_delete=models.PROTECT)
+    accepted = models.BooleanField(default=False)
 
-    def __str__(self):
-        return f'Trip Name:{self.destination}'
+    # def __str__(self):
+    #     return f'Trip Name:{self.destination}'
 
     class Meta:
         verbose_name = 'triprequest'
         db_table = 'trip_request'
-        ordering = ['-destination']
+        # ordering = ['-destination']
 
 
 class Trip_Offers(models.Model):
