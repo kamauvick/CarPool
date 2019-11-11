@@ -7,9 +7,9 @@ from django.dispatch import receiver
 
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.PROTECT, related_name='profile')
-    auth_token = models.CharField(max_length=256)
-    refresh_token = models.CharField(max_length=256)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone_number = models.CharField(max_length=100)
+    auth_token = models.CharField(max_length=200)
 
     @receiver(post_save, sender=User)
     def create_profile(sender, instance, created, **kwargs):
@@ -27,53 +27,79 @@ class Profile(models.Model):
         db_table = 'users'
 
 
-class Location(models.Model):
-    name = models.CharField(max_length=20)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
-
-    def __str__(self):
-        return f'{self.name}'
-
-    class Meta:
-        db_table = 'locations'
-        ordering = ['-name']
-
-
 class Trip(models.Model):
-    driver = models.ForeignKey(Profile, on_delete=models.PROTECT)
-    departure_time = models.DateTimeField(auto_now_add=True)
-    available_seats = models.PositiveSmallIntegerField()
-    complete = models.BooleanField(default=False)
-    arrival_time = models.DateTimeField()
+    origin = models.CharField(max_length=200)
+    destination = models.CharField(max_length=200)
+    departure_time = models.TimeField()
+    available_seats = models.IntegerField()
+    driver = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    start_time = models.TimeField()
+    is_complete = models.BooleanField(default=False)
 
     def __str__(self):
-        return f'{self.driver}'
+        return f'{self.origin}'
 
     class Meta:
         db_table = 'trips'
         ordering = ['-departure_time']
 
 
-class Trip_Passenger(models.Model):
-    trip = models.ForeignKey(Trip, on_delete=models.PROTECT)
-    passenger = models.ForeignKey(Profile, on_delete=models.PROTECT)
+class Trip_Request(models.Model):
+    destination = models.CharField(max_length=200)
+    origin = models.CharField(max_length=200)
+    departure_time = models.TimeField()
 
     def __str__(self):
-        return f'{self.passenger}'
+        return f'Trip Name:{self.destination}'
 
     class Meta:
-        db_table = 'trip_passenger'
-        ordering = ['-trip']
+        verbose_name = 'triprequest'
+        db_table = 'trip_request'
+        ordering = ['-destination']
 
 
-class Trip_Requests(models.Model):
-    request = models.ForeignKey(Trip_Passenger, on_delete=models.PROTECT)
-    passenger = models.ForeignKey(Profile, on_delete=models.PROTECT)
+class Trip_Offers(models.Model):
+    driver = models.ForeignKey(Profile, on_delete=models.CASCADE)
+    departure_time = models.TimeField()
+    start_time = models.TimeField()
+    destination = models.CharField(max_length=200)
+    available_seats = models.IntegerField()
+    is_complete = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f'Offer id:{self.driver}'
+
+    @classmethod
+    def get_offer_by_destination(cls, destination, time):
+        offers = cls.objects.filter(cls(destination__icontains=destination) | cls(departure_time__icontains=time))
+        return offers
+
+    class Meta:
+        verbose_name = 'tripoffers'
+        db_table = 'trip-offers'
+        ordering = ['-driver']
+
+
+class Location(models.Model):
+    location_id = models.IntegerField()
+    latitude = models.DecimalField(max_digits=9, decimal_places=6)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6)
+    request = models.ForeignKey(Trip_Request, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f'{self.longitude} : {self.latitude}'
+
+    class Meta:
+        db_table = 'locations'
+        ordering = ['-location_id']
+
+
+class RequestBoard(models.Model):
+    request = models.ForeignKey(Trip_Request, on_delete=models.CASCADE)
+    is_complete = models.BooleanField()
+
+    class Meta:
+        db_table = 'requestBoard'
 
     def __str__(self):
         return f'{self.request}'
-
-    class Meta:
-        db_table = 'trip-requests'
-        ordering = ['-request']
