@@ -1,7 +1,9 @@
+import datetime
+
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import Location, Profile, Trip_Offers, Trip_Request
+from .models import Location, Profile, Trip_Offers, Trip_Request, Trip
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -64,3 +66,18 @@ class TripRequestSerializer(serializers.ModelSerializer):
         instance.departure_time = validated_data.get('departure_time', instance.departure_time)
         instance.origin = validated_data.get('origin', instance.origin)
         instance.destination = validated_data.get('destination', instance.destination)
+
+
+class TripSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        driver = self.context["request"].user.profile
+        validated_data['driver'] = driver
+        validated_data['date'] = datetime.date.today()
+        return super().create(validated_data)
+
+    class Meta:
+        model = Trip
+        fields = ["id", "departure_time", "arrival_time", "destination", "driver", "is_complete", "origin",
+                  "available_seats", "date", 'created_at']
+        read_only_fields = ["driver", "created_at", "date"]
