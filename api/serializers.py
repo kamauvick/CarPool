@@ -1,25 +1,25 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import Location, Profile
-
-
-class ProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Profile
-        fields = ('auth_token', 'refresh_token',)
+from .models import Location, Profile, Trip_Offers, Trip_Request
 
 
 class UserSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(read_only=True, many=True)
-
     class Meta:
         model = User
-        fields = ['id', 'first_name', 'last_name', 'email', 'profile']
+        fields = ['first_name', 'last_name', 'password', ]
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+
+    class Meta:
+        model = Profile
+        fields = ('phone_number', 'auth_token', 'user')
 
 
 class LocationSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=60)
+    location_id = serializers.IntegerField()
     longitude = serializers.FloatField()
     latitude = serializers.FloatField()
 
@@ -27,9 +27,40 @@ class LocationSerializer(serializers.Serializer):
         return Location.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.name = validated_data.get('title', instance.title)
+        instance.location_id = validated_data.get('location_id', instance.location_id)
         instance.longitude = validated_data.get('longitude', instance.longitude)
         instance.latitude = validated_data.get('latitude', instance.latitude)
 
         instance.save()
         return instance
+
+
+class TripOfferSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trip_Offers
+        exclude = ()
+
+    def create(self, validated_data):
+        return Trip_Offers.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.driver = validated_data.get('driver', instance.driver)
+        instance.departure_time = validated_data.get('departure_time', instance.departure_time)
+        instance.start_time = validated_data.get('start_time', instance.start_time)
+        instance.available_seats = validated_data.get('available_seats', instance.available_seats)
+        instance.destination = validated_data.get('destination', instance.destination)
+        instance.is_complete = validated_data.get('is_complete', instance.is_complete)
+
+
+class TripRequestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trip_Request
+        fields = ('departure_time', 'origin', 'destination')
+
+    def create(self, validated_data):
+        return Trip_Request.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.departure_time = validated_data.get('departure_time', instance.departure_time)
+        instance.origin = validated_data.get('origin', instance.origin)
+        instance.destination = validated_data.get('destination', instance.destination)
