@@ -5,5 +5,5 @@ from .models import *
 admin.site.register(Profile)
 admin.site.register(Location)
 admin.site.register(Trip)
-admin.site.register(Trip_Passenger)
-admin.site.register(Trip_Requests)
+admin.site.register(Trip_Request)
+admin.site.register(Trip_Offers)
