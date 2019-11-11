@@ -34,6 +34,7 @@ class OfferView(APIView):
         offers = Trip_Offers.objects.all()
         serialized_data = TripOfferSerializer(offers, many=True)
         params = {
+
             'offers': serialized_data.data
         }
         return Response(params)
