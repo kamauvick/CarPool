@@ -1,13 +1,17 @@
 # Create your views here.
 from django.http import JsonResponse
+import datetime
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.filters import SearchFilter
+from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Location, Profile, User, Trip_Request, Trip_Offers
+from .models import Location, Profile, User, Trip_Request, Trip_Offers, Trip
 from .serializers import LocationSerializer, ProfileSerializer, UserSerializer, TripOfferSerializer, \
-    TripRequestSerializer
+    TripRequestSerializer, TripSerializer
 
 
 @api_view(['GET'])
@@ -116,3 +120,27 @@ class LocationsList(APIView):
                 'Success': f'Location {saved_location.name} saved successfully'
             }
             return Response(lacation_params)
+
+
+# import django_filters
+# from rest_framework import filters
+# from rest_framework import viewsets
+#
+# class TripsFilter(filters.FilterSet):
+#     timestamp_gte = django_filters.DateTimeFilter(name="timestamp", lookup_expr='gte')
+#     class Meta:
+#         model = Trips
+#         fields = ['', 'event_model', 'timestamp', 'timestamp_gte']
+
+class TripsView(ModelViewSet):
+    queryset = Trip.objects.all()
+    serializer_class = TripSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['^destination']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        _date = self.request.query_params.get('date',None)
+        if _date:
+            queryset = queryset.filter(date=_date)
+        return queryset
