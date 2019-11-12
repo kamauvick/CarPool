@@ -3,7 +3,7 @@ import datetime
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import Location, Profile, Trip_Offers, Trip_Request, Trip
+from .models import Location, Profile, Trip, Trip_Request
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -37,37 +37,6 @@ class LocationSerializer(serializers.Serializer):
         return instance
 
 
-class TripOfferSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Trip_Offers
-        exclude = ()
-
-    def create(self, validated_data):
-        return Trip_Offers.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        instance.driver = validated_data.get('driver', instance.driver)
-        instance.departure_time = validated_data.get('departure_time', instance.departure_time)
-        instance.start_time = validated_data.get('start_time', instance.start_time)
-        instance.available_seats = validated_data.get('available_seats', instance.available_seats)
-        instance.destination = validated_data.get('destination', instance.destination)
-        instance.is_complete = validated_data.get('is_complete', instance.is_complete)
-
-
-class TripRequestSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Trip_Request
-        fields = ('departure_time', 'origin', 'destination')
-
-    def create(self, validated_data):
-        return Trip_Request.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        instance.departure_time = validated_data.get('departure_time', instance.departure_time)
-        instance.origin = validated_data.get('origin', instance.origin)
-        instance.destination = validated_data.get('destination', instance.destination)
-
-
 class TripSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
@@ -79,5 +48,6 @@ class TripSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trip
         fields = ["id", "departure_time", "arrival_time", "destination", "driver", "is_complete", "origin",
-                  "available_seats", "date", 'created_at']
-        read_only_fields = ["driver", "created_at", "date"]
+                  "available_seats", "date", 'created_at', "available_seats"]
+        read_only_fields = ["driver", "created_at", "date", "is_complete", "origin"]
+
