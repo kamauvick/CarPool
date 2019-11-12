@@ -1,17 +1,13 @@
 # Create your views here.
-from django.http import JsonResponse
-import datetime
-from rest_framework.viewsets import ModelViewSet
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.filters import SearchFilter
-from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.viewsets import ModelViewSet
 
-from .models import Location, Profile, User, Trip_Request, Trip_Offers, Trip
-from .serializers import LocationSerializer, ProfileSerializer, UserSerializer, TripOfferSerializer, \
-    TripRequestSerializer, TripSerializer
+from .models import Profile, User, Trip
+from .serializers import ProfileSerializer, UserSerializer, TripSerializer
 
 
 @api_view(['GET'])
@@ -22,60 +18,6 @@ def get_users(request):
         'users': serialized_data.data
     }
     return Response(params)
-
-
-class OfferView(APIView):
-    def get(self, request):
-        offers = Trip_Offers.objects.all()
-        serialized_data = TripOfferSerializer(offers, many=True)
-        params = {
-            'offers': serialized_data.data
-        }
-        return Response(params)
-
-    @classmethod
-    def print_offers(cls):
-        offers = Trip_Offers.objects.all()
-        serialized_data = TripOfferSerializer(offers, many=True)
-        params = {
-
-            'offers': serialized_data.data
-        }
-        return Response(params)
-
-    def post(self, request):
-        offer = request.data
-        serializer = TripOfferSerializer(data=offer)
-        if serializer.is_valid(raise_exception=True):
-            created_offer = serializer.save()
-            offer_data = {
-                'Success': f'An offer by {created_offer.driver} for {created_offer.destination} has been created',
-            }
-            return Response(offer_data)
-
-
-class RequestView(APIView):
-    def get(self, request):
-        trip_requests = Trip_Request.objects.all()
-        serialized_data = TripOfferSerializer(trip_requests, many=True)
-        params = {
-            "trip_requests": serialized_data.data
-        }
-
-        return JsonResponse(params, safe=False)
-
-    def post(self, request):
-        trip_request = request.data
-        serializer = TripRequestSerializer(data=trip_request)
-        if serializer.is_valid(raise_exception=True):
-            created_request = serializer.save()
-            request_data = {
-                'Success': f'A request from {created_request.origin} to {created_request.destination} has been created',
-                "matching_offers": OfferView.print_offers().data
-            }
-
-            print(request_data)
-            return Response(request_data)
 
 
 class ProfileListView(APIView):
@@ -98,40 +40,6 @@ class ProfileListView(APIView):
             return Response(profile_data)
 
 
-class LocationsList(APIView):
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        locations = Location.objects.all()
-        serialized_locations = LocationSerializer(locations, many=True)
-        params = {
-            'locations': serialized_locations.data
-        }
-
-        return Response(params)
-
-    def post(self, request):
-        location = self.request.data
-        serializer = LocationSerializer(data=location)
-        if serializer.is_valid(raise_exception=True):
-            saved_location = serializer.save()
-            print(saved_location)
-            lacation_params = {
-                'Success': f'Location {saved_location.name} saved successfully'
-            }
-            return Response(lacation_params)
-
-
-# import django_filters
-# from rest_framework import filters
-# from rest_framework import viewsets
-#
-# class TripsFilter(filters.FilterSet):
-#     timestamp_gte = django_filters.DateTimeFilter(name="timestamp", lookup_expr='gte')
-#     class Meta:
-#         model = Trips
-#         fields = ['', 'event_model', 'timestamp', 'timestamp_gte']
-
 class TripsView(ModelViewSet):
     queryset = Trip.objects.all()
     serializer_class = TripSerializer
@@ -140,7 +48,21 @@ class TripsView(ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        _date = self.request.query_params.get('date',None)
+        _date = self.request.query_params.get('date', None)
+        if _date:
+            queryset = queryset.filter(date=_date)
+        return queryset
+
+
+class RequestView(ModelViewSet):
+    queryset = Trip.objects.all()
+    serializer_class = TripSerializer
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    search_fields = ['^destination']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        _date = self.request.query_params.get('date', None)
         if _date:
             queryset = queryset.filter(date=_date)
         return queryset
