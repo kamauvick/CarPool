@@ -51,8 +51,8 @@ class Trip_Request(models.Model):
     passenger = models.ForeignKey('api.Profile', related_name='trip_passengers', on_delete=models.PROTECT)
     accepted = models.BooleanField(default=False)
 
-    # def __str__(self):
-    #     return f'Trip Name:{self.destination}'
+    def __str__(self):
+        return f'Trip Name:{self.passenger}'
 
     class Meta:
         verbose_name = 'triprequest'
@@ -60,25 +60,15 @@ class Trip_Request(models.Model):
 
 
 class Trip_Offers(models.Model):
-    driver = models.ForeignKey(Profile, on_delete=models.CASCADE)
-    departure_time = models.TimeField()
-    start_time = models.TimeField()
-    destination = models.CharField(max_length=200)
-    available_seats = models.IntegerField()
-    is_complete = models.BooleanField(default=False)
+    trip = models.ForeignKey('api.Trip', related_name='trip_offers', on_delete=models.PROTECT)
+    driver = models.ForeignKey('api.Profile', related_name='trip_driver', on_delete=models.CASCADE)
 
     def __str__(self):
         return f'Offer id:{self.driver}'
 
-    @classmethod
-    def get_offer_by_destination(cls, destination, time):
-        offers = cls.objects.filter(cls(destination__icontains=destination) | cls(departure_time__icontains=time))
-        return offers
-
     class Meta:
         verbose_name = 'tripoffers'
         db_table = 'trip-offers'
-        ordering = ['-driver']
 
 
 class Location(models.Model):
