@@ -2,6 +2,7 @@ from django.conf.urls import url
 from django.urls import include, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
+from fcm_django.api.rest_framework import FCMDeviceViewSet
 from rest_framework import permissions
 from rest_framework.routers import SimpleRouter
 
@@ -23,6 +24,7 @@ schema_view = get_schema_view(
 router = SimpleRouter()
 router.register('trips', TripsView, base_name='trips-view')
 router.register('requests', RequestView, base_name='request-view')
+router.register('devices', FCMDeviceViewSet)
 
 urlpatterns = [
     path('auth/', include('rest_auth.urls')),

@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'rest_auth.registration',
     'drf_yasg',
+    "fcm_django",
 
 ]
 
@@ -64,6 +65,19 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+}
+
+FCM_DJANGO_SETTINGS = {
+    "APP_VERBOSE_NAME": "wbcarpoolapp",
+    # default: _('FCM Django')
+    "FCM_SERVER_KEY": "AAAA05BUO80:APA91bFk-TeI72j2KG3gM58ItaGBbIzKI-B_tIxEfDUruIKA3xSqVs54dIDYybPk8eBQuN1VULeL9DSNFDI03l67skJnrlN7hGjQMUTFAz_5Okn9FcCkn9-i2DT8xI-CsXo5FkzIgXjN",
+    # true if you want to have only one active device per registered user at a time
+    # default: False
+    "ONE_DEVICE_PER_USER": False,
+    # devices to which notifications cannot be sent,
+    # are deleted upon receiving error response from FCM
+    # default: False
+    "DELETE_INACTIVE_DEVICES": True,
 }
 
 AUTHENTICATION_BACKENDS = (
