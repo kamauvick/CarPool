@@ -67,6 +67,7 @@ REST_FRAMEWORK = {
     ],
 }
 
+# Django setting for fcm-django
 FCM_DJANGO_SETTINGS = {
     "APP_VERBOSE_NAME": "wbcarpoolapp",
     # default: _('FCM Django')
