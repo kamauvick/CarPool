@@ -40,7 +40,7 @@ class TripsView(ModelViewSet):
     queryset = Trip.objects.all()
     serializer_class = TripSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ['driver']
+    # filterset_fields = ['driver']
     search_fields = ['^destination']
 
     def get_queryset(self):
