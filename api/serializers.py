@@ -33,7 +33,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ('id', 'phone_number', 'user',)
+        fields = ('id', 'phone_number', "profile_pic", 'user',)
 
 
 class LocationSerializer(serializers.Serializer):
