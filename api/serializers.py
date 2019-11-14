@@ -54,6 +54,7 @@ class LocationSerializer(serializers.Serializer):
 
 
 class TripSerializer(serializers.ModelSerializer):
+    driver = ProfileSerializer(read_only=True)
 
     def create(self, validated_data):
         driver = self.context["request"].user.profile
@@ -69,6 +70,9 @@ class TripSerializer(serializers.ModelSerializer):
 
 
 class TripRequestSerializer(serializers.ModelSerializer):
+    passenger = ProfileSerializer(read_only=True)
+    driver = ProfileSerializer(read_only=True)
+    trip = TripSerializer(read_only=True)
 
     def create(self, validated_data):
         trip: Trip = validated_data['trip']
@@ -91,5 +95,5 @@ class TripRequestSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Trip_Request
-        fields = ["id", "trip", "passenger", "accepted"]
+        fields = ["id", "trip", "passenger", "driver", "accepted"]
         read_only_fields = ["passenger", "accepted"]
