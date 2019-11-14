@@ -66,8 +66,8 @@ class TripRequestView(ModelViewSet):
         return queryset
 
 
-
-
 passenger_survey = [
-    "How was the overall experience?"
+    "How was the overall experience?", "Would you  use the app again?"
 ]
+
+
