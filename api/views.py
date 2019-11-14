@@ -1,13 +1,16 @@
 # Create your views here.
+import operator
+from functools import reduce
+
+from django.db.models import Q
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Profile, User, Trip
-from .serializers import ProfileSerializer, UserSerializer, TripSerializer
+from .models import Profile, User, Trip, Trip_Request
+from .serializers import ProfileSerializer, UserSerializer, TripSerializer, TripRequestSerializer
 
 
 @api_view(['GET'])
@@ -20,30 +23,24 @@ def get_users(request):
     return Response(params)
 
 
-class ProfileListView(APIView):
-    def get(self, request):
-        users = Profile.objects.all()
-        serialized_data = ProfileSerializer(users, many=True)
-        params = {
-            'profiles': serialized_data.data
-        }
-        return Response(params)
+class ProfileView(ModelViewSet):
+    serializer_class = ProfileSerializer
+    queryset = Profile.objects.all()
 
-    def post(self, request):
-        profile = request.data
-        serializer = ProfileSerializer(data=profile)
-        if serializer.is_valid(raise_exception=True):
-            saved_profile = serializer.save()
-            profile_data = {
-                'Success': f'Profile for {saved_profile.name}, created successfully'
-            }
-            return Response(profile_data)
+    def get_queryset(self):
+        profile = self.request.user.profile
+        if self.action in ['list', 'retrieve']:
+            return [profile]
+
+    def get_object(self):
+        return self.request.user.profile
 
 
 class TripsView(ModelViewSet):
     queryset = Trip.objects.all()
     serializer_class = TripSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['driver']
     search_fields = ['^destination']
 
     def get_queryset(self):
@@ -54,15 +51,16 @@ class TripsView(ModelViewSet):
         return queryset
 
 
-class RequestView(ModelViewSet):
-    queryset = Trip.objects.all()
-    serializer_class = TripSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
-    search_fields = ['^destination']
+class TripRequestView(ModelViewSet):
+    queryset = Trip_Request.objects.all()
+    serializer_class = TripRequestSerializer
+    filter_backends = [DjangoFilterBackend, ]
+    filterset_fields = ["trip"]
 
     def get_queryset(self):
         queryset = super().get_queryset()
-        _date = self.request.query_params.get('date', None)
-        if _date:
-            queryset = queryset.filter(date=_date)
+        if self.action in ['list', 'retrieve']:
+            p = self.request.user.profile
+            # reduce(operator.or_, Q(trip__driver=p),Q(passenger=p))
+            queryset = queryset.filter(reduce(operator.or_, (Q(trip__driver=p), Q(passenger=p))))
         return queryset
