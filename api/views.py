@@ -64,3 +64,10 @@ class TripRequestView(ModelViewSet):
             # reduce(operator.or_, Q(trip__driver=p),Q(passenger=p))
             queryset = queryset.filter(reduce(operator.or_, (Q(trip__driver=p), Q(passenger=p))))
         return queryset
+
+
+
+
+passenger_survey = [
+    "How was the overall experience?"
+]
