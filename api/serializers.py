@@ -72,7 +72,7 @@ class TripSerializer(serializers.ModelSerializer):
 class TripRequestSerializer(serializers.ModelSerializer):
     passenger = ProfileSerializer(read_only=True)
     driver = ProfileSerializer(read_only=True)
-    trip = TripSerializer(read_only=True)
+    # trip = TripSerializer(read_only=True)
 
     def create(self, validated_data):
         trip: Trip = validated_data['trip']
