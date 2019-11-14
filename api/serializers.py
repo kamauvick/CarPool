@@ -2,6 +2,7 @@ import datetime
 
 from django.contrib.auth.models import User
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from .models import Location, Profile, Trip, Trip_Request
 
@@ -9,15 +10,30 @@ from .models import Location, Profile, Trip, Trip_Request
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'password', ]
+        fields = ['id', 'username', 'email']
 
 
 class ProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer(read_only=True)
 
+    def create(self, validated_data):
+        raise ValidationError(detail='not supported')
+
+    def update(self, instance, validated_data):
+        if self.context['request'].user != instance.user:
+            raise ValidationError(detail='Must be user to edit')
+        phone_number = validated_data.get('phone_number', None)
+        if phone_number is None:
+            if not self.partial:
+                raise ValidationError(detail='Phone number must be provided')
+        else:
+            instance.phone_number = phone_number
+            instance.save()
+        return instance
+
     class Meta:
         model = Profile
-        fields = ('phone_number', 'auth_token', 'user')
+        fields = ('id', 'phone_number', 'user',)
 
 
 class LocationSerializer(serializers.Serializer):
@@ -51,3 +67,29 @@ class TripSerializer(serializers.ModelSerializer):
                   "available_seats", "date", 'created_at', "available_seats"]
         read_only_fields = ["driver", "created_at", "date", "is_complete", "origin"]
 
+
+class TripRequestSerializer(serializers.ModelSerializer):
+
+    def create(self, validated_data):
+        trip: Trip = validated_data['trip']
+
+        count = len(trip.trip_requests.all())
+        if count >= trip.available_seats or trip.full:
+            raise ValidationError(detail="Trip is full")
+        passenger = self.context['request'].user.profile
+        if trip.trip_requests.filter(passenger=passenger):
+            raise ValidationError(detail="Already booked trip")
+
+        if trip.driver == passenger:
+            raise ValidationError(detail='Driver cannot book a seat')
+        validated_data['passenger'] = passenger
+        r = Trip_Request.objects.create(**validated_data)
+        return r
+
+    def update(self, instance, validated_data):
+        raise ValidationError(detail="not implemented")
+
+    class Meta:
+        model = Trip_Request
+        fields = ["id", "trip", "passenger", "accepted"]
+        read_only_fields = ["passenger", "accepted"]
