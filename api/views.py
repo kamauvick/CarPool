@@ -1,10 +1,12 @@
 # Create your views here.
 import operator
+import random
 from functools import reduce
 
 from django.db.models import Q
+from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, APIView
 from rest_framework.filters import SearchFilter
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -66,8 +68,15 @@ class TripRequestView(ModelViewSet):
         return queryset
 
 
-passenger_survey = [
-    "How was the overall experience?", "Would you  use the app again?"
+survey_questions = [
+    "How was the overall experience?", "Would you use the app again?", "Would you suggest this trip to a colleague?"
 ]
 
 
+class SendSurvey(APIView):
+    def get(self, request):
+        print(random.choice(survey_questions))
+        params = {
+            "question": random.choice(survey_questions),
+        }
+        return JsonResponse(params)
