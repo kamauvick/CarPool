@@ -8,11 +8,18 @@ from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import api_view, APIView
 from rest_framework.filters import SearchFilter
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from .models import Profile, User, Trip, Trip_Request
 from .serializers import ProfileSerializer, UserSerializer, TripSerializer, TripRequestSerializer
+
+
+class ResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 20
 
 
 @api_view(['GET'])
@@ -39,6 +46,7 @@ class ProfileView(ModelViewSet):
 
 
 class TripsView(ModelViewSet):
+    pagination_class = ResultsSetPagination
     queryset = Trip.objects.all()
     serializer_class = TripSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
@@ -54,6 +62,7 @@ class TripsView(ModelViewSet):
 
 
 class TripRequestView(ModelViewSet):
+    pagination_class = ResultsSetPagination
     queryset = Trip_Request.objects.all()
     serializer_class = TripRequestSerializer
     filter_backends = [DjangoFilterBackend, ]
@@ -74,6 +83,7 @@ survey_questions = [
 
 
 class SendSurvey(APIView):
+    pagination_class = ResultsSetPagination
     def get(self, request):
         print(random.choice(survey_questions))
         params = {
