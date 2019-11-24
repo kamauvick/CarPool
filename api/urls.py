@@ -8,7 +8,13 @@ from fcm_django.api.rest_framework import FCMDeviceViewSet
 from rest_framework import permissions
 from rest_framework.routers import SimpleRouter
 
-from .views import get_users, ProfileView, TripsView, TripRequestView, SendSurvey
+from .views import (
+    get_users,
+    ProfileView,
+    TripsView,
+    TripRequestView,
+    SendSurvey
+)
 
 schema_view = get_schema_view(
     openapi.Info(
