@@ -23,6 +23,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         if self.context['request'].user != instance.user:
             raise ValidationError(detail='Must be user to edit')
         phone_number = validated_data.get('phone_number', None)
+        print(phone_number)
         if phone_number is None:
             if not self.partial:
                 raise ValidationError(detail='Phone number must be provided')
@@ -72,6 +73,7 @@ class TripSerializer(serializers.ModelSerializer):
 class TripRequestSerializer(serializers.ModelSerializer):
     passenger = ProfileSerializer(read_only=True)
     driver = ProfileSerializer(read_only=True)
+
     # trip = TripSerializer(read_only=True)
 
     def create(self, validated_data):
@@ -90,8 +92,6 @@ class TripRequestSerializer(serializers.ModelSerializer):
         r = Trip_Request.objects.create(**validated_data)
         return r
 
-    def update(self, instance, validated_data):
-        raise ValidationError(detail="not implemented")
 
     class Meta:
         model = Trip_Request
