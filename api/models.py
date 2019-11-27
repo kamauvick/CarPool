@@ -28,13 +28,27 @@ class Profile(models.Model):
 
 
 class Trip(models.Model):
+    REQUESTED = 'REQUESTED'
+    STARTED = 'STARTED'
+    IN_PROGRESS = 'IN_PROGRESS'
+    COMPLETED = 'COMPLETED'
+
+    STATUSES = (
+        (REQUESTED, REQUESTED),
+        (STARTED, STARTED),
+        (IN_PROGRESS, IN_PROGRESS),
+        (COMPLETED, COMPLETED),
+    )
+
+    status = models.CharField(max_length=20,
+                              choices=STATUSES,
+                              default=REQUESTED)
     origin = models.CharField(max_length=200)
     destination = models.CharField(max_length=200)
     departure_time = models.TimeField()
     available_seats = models.IntegerField()
     driver = models.ForeignKey(Profile, on_delete=models.CASCADE)
     arrival_time = models.TimeField(null=True, blank=True)
-    is_complete = models.BooleanField(default=False)
     date = models.DateField(auto_now_add=True)
     full = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -72,23 +86,17 @@ class Trip_Offers(models.Model):
         db_table = 'trip-offers'
 
 
-class Location(models.Model):
-    location_id = models.IntegerField()
-    latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6)
-    request = models.ForeignKey(Trip_Request, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f'{self.longitude} : {self.latitude}'
-
-    class Meta:
-        db_table = 'locations'
-        ordering = ['-location_id']
-
-
 class RequestBoard(models.Model):
-    request = models.ForeignKey(Trip_Request, on_delete=models.CASCADE)
-    is_complete = models.BooleanField()
+    request = models.ForeignKey(Trip_Request, on_delete=models.CASCADE, related_name='request')
+
+    # @receiver(post_save, sender=Trip_Request)
+    # def create_trip(sender, instance, created, **kwargs):
+    #     if created:
+    #         RequestBoard.objects.create(request=instance)
+    #
+    # @receiver(post_save, sender=Trip_Request)
+    # def save_trip(sender, instance, **kwargs):
+    #     instance.request.save()
 
     class Meta:
         db_table = 'requestBoard'
