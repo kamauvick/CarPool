@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'rest_auth.registration',
     'drf_yasg',
     "fcm_django",
+    # 'channels',
 
 ]
 
@@ -81,6 +82,18 @@ FCM_DJANGO_SETTINGS = {
     "DELETE_INACTIVE_DEVICES": True,
 }
 
+# Channels settings
+ASGI_APPLICATION = "olympia.routing.application"
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [("localhost", 6379)],
+            "symmetric_encryption_keys": [SECRET_KEY],
+        },
+    },
+}
+
 AUTHENTICATION_BACKENDS = (
     # Needed to login by username in Django admin, regardless of `allauth`
     'django.contrib.auth.backends.ModelBackend',
@@ -89,6 +102,8 @@ AUTHENTICATION_BACKENDS = (
     'allauth.account.auth_backends.AuthenticationBackend',
 
 )
+
+
 
 MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
