@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Location, Profile, Trip, Trip_Request
+from .models import Profile, Trip, Trip_Request
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -37,25 +37,12 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = ('id', 'phone_number', "profile_pic", 'user',)
 
 
-class LocationSerializer(serializers.Serializer):
-    location_id = serializers.IntegerField()
-    longitude = serializers.FloatField()
-    latitude = serializers.FloatField()
-
-    def create(self, validated_data):
-        return Location.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        instance.location_id = validated_data.get('location_id', instance.location_id)
-        instance.longitude = validated_data.get('longitude', instance.longitude)
-        instance.latitude = validated_data.get('latitude', instance.latitude)
-
-        instance.save()
-        return instance
-
-
 class TripSerializer(serializers.ModelSerializer):
     driver = ProfileSerializer(read_only=True)
+    requests = serializers.SerializerMethodField()
+
+    def get_requests(self, obj):
+        return TripRequestSerializer(obj.trip_requests.all(), many=True).data
 
     def create(self, validated_data):
         driver = self.context["request"].user.profile
@@ -65,35 +52,35 @@ class TripSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Trip
-        fields = ["id", "departure_time", "arrival_time", "destination", "driver", "is_complete", "origin",
-                  "available_seats", "date", 'created_at', "available_seats"]
-        read_only_fields = ["driver", "created_at", "date", "is_complete", "origin"]
+        fields = ["id", "departure_time", "arrival_time", "destination", "driver", "status", "origin",
+                  "available_seats", 'requests', "date", 'created_at', ]
+
+        read_only_fields = ["driver", "created_at", "date", 'requests']
 
 
 class TripRequestSerializer(serializers.ModelSerializer):
     passenger = ProfileSerializer(read_only=True)
     driver = ProfileSerializer(read_only=True)
 
-    # trip = TripSerializer(read_only=True)
+    my_trip = TripSerializer(read_only=True)
 
     def create(self, validated_data):
         trip: Trip = validated_data['trip']
 
         count = len(trip.trip_requests.all())
         if count >= trip.available_seats or trip.full:
-            raise ValidationError(detail="Trip is full")
+            raise ValidationError(detail="The trip is full..please check another one :)")
         passenger = self.context['request'].user.profile
         if trip.trip_requests.filter(passenger=passenger):
-            raise ValidationError(detail="Already booked trip")
+            raise ValidationError(detail="You've already booked that trip")
 
         if trip.driver == passenger:
-            raise ValidationError(detail='Driver cannot book a seat')
+            raise ValidationError(detail='The driver who created the offer cannot book a seat')
         validated_data['passenger'] = passenger
         r = Trip_Request.objects.create(**validated_data)
         return r
 
-
     class Meta:
         model = Trip_Request
-        fields = ["id", "trip", "passenger", "driver", "accepted"]
-        read_only_fields = ["passenger", "accepted"]
+        fields = ["id", "trip", "passenger", "driver", "accepted", "my_trip", ]
+        read_only_fields = ["passenger", "driver", "my_trip", ]
