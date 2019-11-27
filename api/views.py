@@ -52,12 +52,17 @@ class ProfileView(ModelViewSet):
         return self.request.user.profile
 
 
+# MY_APP_ID = config('MY_APP_ID')
+# MY_REST_API_KEY = config('MY_REST_API_KEY')
+# client = OneSignal(MY_APP_ID, MY_REST_API_KEY)
+
+
 class TripsView(ModelViewSet):
     pagination_class = ResultsSetPagination
     queryset = Trip.objects.all()
     serializer_class = TripSerializer
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    # filterset_fields = ['driver']
+    filterset_fields = ['driver']
     search_fields = ['^destination']
 
     def get_queryset(self):
@@ -72,8 +77,9 @@ class TripRequestView(ModelViewSet):
     pagination_class = ResultsSetPagination
     queryset = Trip_Request.objects.all()
     serializer_class = TripRequestSerializer
-    filter_backends = [DjangoFilterBackend, ]
-    filterset_fields = ["trip"]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    # search_fields = ['^driver', ]
+    # filterset_fields = ["id", ]
 
     def get_queryset(self):
         queryset = super().get_queryset()
